@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Compass: Psychometric Test</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container-box {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 2rem auto;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .likert-option:checked + .likert-label {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .chart-bar {
+            background-color: #3b82f6;
+            transition: width 1s ease-in-out;
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            position: relative;
+        }
+        .chart-bar-text {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.875rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        /* Report styling */
+        .report-page {
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 0.5in;
+            box-sizing: border-box;
+            background-color: white;
+            page-break-after: always; /* Ensure a break for multi-page reports if needed, but we'll try to fit on one */
+        }
+        .report-header {
+            background-color: #2e6644;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .report-section {
+            margin-bottom: 1.5rem;
+            break-inside: avoid; /* Prevents breaking inside a section */
+        }
+        .report-box {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <!-- Main Container for the Application -->
+    <div id="app-container" class="container-box">
+        
+        <!-- Step 1: Student Information Form -->
+        <div id="step-1" class="step active text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-6">Welcome to Career Compass</h1>
+            <p class="text-lg text-gray-600 mb-8">This test will help you explore your strengths and interests to discover a career path that's right for you. Please fill in your details to begin.</p>
+            <form id="student-info-form" class="space-y-6 text-left max-w-sm mx-auto">
+                <div>
+                    <label for="student-name" class="block text-sm font-medium text-gray-700 mb-1">Your Full Name</label>
+                    <input type="text" id="student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                </div>
+                <div>
+                    <label for="student-grade" class="block text-sm font-medium text-gray-700 mb-1">Select Your Grade</label>
+                    <select id="student-grade" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <option value="">-- Select Grade --</option>
+                        <option value="6">6th Grade</option>
+                        <option value="7">7th Grade</option>
+                        <option value="8">8th Grade</option>
+                        <option value="9">9th Grade</option>
+                        <option value="10">10th Grade</option>
+                        <option value="11">11th Grade</option>
+                        <option value="12">12th Grade</option>
+                    </select>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">Start the Test</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 2: The Questionnaire -->
+        <div id="step-2" class="step">
+            <div id="questionnaire-sections">
+                <!-- Personality Questions Section -->
+                <div id="section-personality" class="question-section">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-6">Personality Questions</h2>
+                    <form id="personality-form" class="space-y-6"></form>
+                </div>
+
+                <!-- Interests Questions Section -->
+                <div id="section-interests" class="question-section hidden">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-6">Interests Questions</h2>
+                    <form id="interests-form" class="space-y-6"></form>
+                </div>
+                
+                <!-- Aptitude Questions Section -->
+                <div id="section-aptitude" class="question-section hidden">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-6">Aptitude Questions</h2>
+                    <div class="text-center mb-4">
+                        <span id="timer" class="text-xl font-bold text-red-500"></span>
+                    </div>
+                    <form id="aptitude-form" class="space-y-6"></form>
+                </div>
+
+                <!-- Skills Questions Section -->
+                <div id="section-skills" class="question-section hidden">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-6">Skills Questions</h2>
+                    <form id="skills-form" class="space-y-6"></form>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center flex justify-between">
+                <button id="back-button" class="px-6 py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all">Back</button>
+                <button id="next-button" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">Next</button>
+                <button id="submit-test-button" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all hidden">Submit Test</button>
+            </div>
+        </div>
+
+        <!-- Step 3: The Report -->
+        <div id="step-3" class="step">
+            <div id="report-content" class="report-page">
+                <div class="report-header">Career Aptitude Test Report</div>
+                
+                <!-- Personal Info Section -->
+                <div class="flex justify-between items-center mb-4">
+                    <div id="report-name" class="text-lg font-semibold"></div>
+                    <div id="report-class" class="text-lg font-semibold"></div>
+                </div>
+
+                <!-- Intro Section -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Congratulations!</h3>
+                    <p class="text-gray-700 text-sm">You've taken an important step toward finding a career that's right for you. This report is based on your answers to the Career Aptitude Test. This psychometric test measures career interests, aptitude, skills, and personality and is one of the most advanced, scientifically-based tests of its kind.</p>
+                </div>
+                
+                <!-- Personality Report -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Personality Report</h3>
+                    <p id="personality-report-text" class="text-gray-700 text-sm mb-2"></p>
+                    <p class="text-gray-600 text-sm italic">Personality is about how a person is naturally motivated to act. All personality styles are valid and needed in the world. The goal is to find a career that is a good match for your natural tendencies.</p>
+                </div>
+
+                <!-- Interests Report -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Interest Profiler Score Report</h3>
+                    <p id="interests-report-text" class="text-gray-700 text-sm mb-4"></p>
+                    <canvas id="interests-chart-canvas" class="my-4" style="height: 250px; width: 100%;"></canvas>
+                </div>
+
+                <!-- Aptitude Report -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Aptitude Summary</h3>
+                    <p id="aptitude-report-text" class="text-gray-700 text-sm mb-4"></p>
+                    <div id="aptitude-summary-table" class="space-y-2"></div>
+                </div>
+
+                <!-- Skills Report -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Skill Assessment Report</h3>
+                    <p id="skills-report-text" class="text-gray-700 text-sm mb-4"></p>
+                    <canvas id="skills-pie-chart-canvas" class="my-4" style="height: 250px; width: 100%;"></canvas>
+                </div>
+
+                <!-- Final Career Recommendations -->
+                <div class="report-box report-section">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Ideal Career for You</h3>
+                    <p class="text-gray-700 text-sm mb-4">Based on your Aptitude, Personality, Skills, and Interests, here are your top three preferences.</p>
+                    <div id="career-recommendations" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="download-pdf-button" class="w-full sm:w-auto px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">Download Report as PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        // --- GOOGLE SHEETS INTEGRATION ---
+        // INSTRUCTIONS:
+        // 1. Go to your Google Drive and create a new Google Sheet.
+        // 2. Go to Extensions -> Apps Script.
+        // 3. Delete the default code and copy the code from the provided `google-apps-script.gs` file below.
+        // 4. In the Apps Script editor, go to Deploy -> New deployment.
+        // 5. Select type "Web app".
+        // 6. Set "Execute as" to "Me" and "Who has access" to "Anyone".
+        // 7. Click Deploy. Authorize the script if prompted.
+        // 8. Copy the Web app URL and paste it below.
+        
+        const SCRIPT_URL = ''; // <-- PASTE YOUR SCRIPT URL HERE
+
+        // --- GLOBAL STATE ---
+        const state = {
+            currentStep: 1,
+            currentSection: 0,
+            studentInfo: null,
+            answers: {},
+            scores: null,
+            aptitudeTimer: null,
+            aptitudeTimeRemaining: 0,
+            sections: ["personality", "interests", "aptitude", "skills"],
+            questions: {
+                grades_6_8: {
+                    personality: [
+                        {id: "p1", text: "I often feel confident when speaking in front of a group."},
+                        {id: "p2", text: "I enjoy solving puzzles and thinking about complex problems."},
+                        {id: "p3", text: "I am always organized and plan my tasks ahead of time."},
+                        {id: "p4", text: "I find it easy to make new friends."},
+                        {id: "p5", text: "I get excited by new and creative ideas."},
+                        {id: "p6", text: "I prefer to stick to a daily schedule."},
+                        {id: "p7", text: "I feel at ease when working with others on a team project."},
+                        {id: "p8", text: "I like to explore new places and try new things."},
+                        {id: "p9", text: "I am a calm person, even in stressful situations."},
+                        {id: "p10", text: "I am good at listening to my friends' problems and helping them."},
+                        {id: "p11", text: "I am comfortable with being the leader in group activities."},
+                        {id: "p12", text: "I feel a strong sense of responsibility to get things done."},
+                    ],
+                    interests: [
+                        {id: "i1", text: "I like working with my hands to build or fix things.", domain: "Realistic"},
+                        {id: "i2", text: "I am curious about how things work and enjoy doing research.", domain: "Investigative"},
+                        {id: "i3", text: "I enjoy expressing my feelings through art, music, or writing.", domain: "Artistic"},
+                        {id: "i4", text: "I like helping people and making them feel better.", domain: "Social"},
+                        {id: "i5", text: "I am interested in starting my own small business or leading projects.", domain: "Enterprising"},
+                        {id: "i6", text: "I like keeping records organized and following a clear set of rules.", domain: "Conventional"},
+                        {id: "i7", text: "I would enjoy being a forest ranger or working with animals.", domain: "Realistic"},
+                        {id: "i8", text: "I am good at figuring out puzzles and riddles.", domain: "Investigative"},
+                        {id: "i9", text: "I often find myself daydreaming and coming up with original ideas.", domain: "Artistic"},
+                        {id: "i10", text: "I like teaching others how to do something new.", domain: "Social"},
+                        {id: "i11", text: "I enjoy convincing people to see my point of view.", domain: "Enterprising"},
+                        {id: "i12", text: "I am very good at following instructions exactly.", domain: "Conventional"},
+                    ],
+                    aptitude: [
+                        {id: "a1", text: "A bat and a ball together cost $1.10. The bat costs $1 more than the ball. How much does the ball cost?", options: ["$0.05", "$0.10", "$0.50", "$1.00"], answer: "$0.05", domain: "Numerical"},
+                        {id: "a2", text: "Which word is the odd one out: Apple, Banana, Orange, Carrot, Grape?", options: ["Apple", "Banana", "Orange", "Carrot", "Grape"], answer: "Carrot", domain: "Verbal"},
+                        {id: "a3", text: "If a pizza costs $10 and you buy half of it, how much do you pay?", options: ["$2", "$5", "$10", "$20"], answer: "$5", domain: "Numerical"},
+                        {id: "a4", text: "What is the next number in the series: 3, 6, 9, 12, ?", options: ["13", "14", "15", "16"], answer: "15", domain: "Logical"},
+                        {id: "a5", text: "Which word is the opposite of 'expand'?", options: ["Enlarge", "Grow", "Shrink", "Stretch"], answer: "Shrink", domain: "Verbal"},
+                        {id: "a6", text: "If you have 5 boxes, and each box contains 8 pencils, how many pencils do you have in total?", options: ["30", "40", "45", "50"], answer: "40", domain: "Numerical"},
+                        {id: "a7", text: "A clock is running 10 minutes fast. If the clock shows 3:30, what is the actual time?", options: ["3:20", "3:40", "3:30", "3:15"], answer: "3:20", domain: "Logical"},
+                        {id: "a8", text: "A train travels at a speed of 60 km/h. How long will it take to travel 120 km?", options: ["1 hour", "2 hours", "3 hours", "4 hours"], answer: "2 hours", domain: "Numerical"},
+                        {id: "a9", text: "A book costs $12.50. You pay with a $20 bill. How much change will you get?", options: ["$7.50", "$8.50", "$6.50", "$7.00"], answer: "$7.50", domain: "Numerical"},
+                        {id: "a10", text: "Which word best completes the analogy: 'Oven is to bake as Refrigerator is to _____.'?", options: ["Freeze", "Cook", "Eat", "Warm"], answer: "Freeze", domain: "Verbal"},
+                        {id: "a11", text: "If A=2, B=4, C=6, then what does D equal?", options: ["8", "10", "12", "14"], answer: "8", domain: "Logical"},
+                        {id: "a12", text: "If a lever is used to lift a heavy rock, where would you push to make it easiest?", options: ["Close to the rock", "Far from the rock", "In the middle", "It doesn't matter"], answer: "Far from the rock", domain: "Mechanical"},
+                        {id: "a13", text: "A square field has an area of 100 square meters. What is the length of one side?", options: ["10 meters", "12 meters", "14 meters", "16 meters"], answer: "10 meters", domain: "Numerical"},
+                        {id: "a14", text: "If a car's tire has a diameter of 2 feet and rotates 100 times, how far has the car traveled?", options: ["$100\pi$ feet", "$150\pi$ feet", "$200\pi$ feet", "$250\pi$ feet"], answer: "$200\pi$ feet", domain: "Numerical"},
+                    ],
+                    skills: [
+                        {id: "s1", text: "I can clearly explain my ideas to others.", domain: "People"},
+                        {id: "s2", text: "I can organize my schoolwork and study materials.", domain: "Task"},
+                        {id: "s3", text: "I am a curious person who likes to ask questions.", domain: "Personal"},
+                        {id: "s4", text: "I work well with others in a team.", domain: "People"},
+                        {id: "s5", text: "I can follow a recipe or instructions to make something.", domain: "Task"},
+                        {id: "s6", text: "I feel confident about my abilities.", domain: "Personal"},
+                        {id: "s7", text: "I am a good at listening to my friends' problems and helping them.", domain: "People"},
+                        {id: "s8", text: "I am good at managing my time to complete homework.", domain: "Task"},
+                        {id: "s9", text: "I can handle it when things don't go as planned.", domain: "Personal"},
+                        {id: "s10", text: "I am good at convincing people to agree with me.", domain: "People"},
+                        {id: "s11", text: "I am able to think of new and creative solutions to problems.", domain: "Task"},
+                        {id: "s12", text: "I am a resilient person who doesn't give up easily.", domain: "Personal"},
+                    ]
+                },
+                grades_9_12: {
+                    personality: [
+                        {id: "p13", text: "I often think about complex and abstract ideas."},
+                        {id: "p14", text: "I am highly organized and methodical in my work."},
+                        {id: "p15", text: "I am energized by spending time in large social gatherings."},
+                        {id: "p16", text: "I remain calm and stable even under significant stress."},
+                        {id: "p17", text: "I find it easy to empathize with people from different backgrounds."},
+                        {id: "p18", text: "I am usually the one to initiate a conversation with a stranger."},
+                        {id: "p19", text: "I strive for excellence in everything I do."},
+                        {id: "p20", text: "I enjoy working with others to achieve a common goal."},
+                        {id: "p21", text: "I have a vivid imagination and enjoy creative hobbies."},
+                        {id: "p22", text: "I am typically relaxed and take things in stride."},
+                        {id: "p23", text: "I believe it's important to be honest and direct with people."},
+                        {id: "p24", text: "I prefer tasks where I have a clear set of rules and instructions."},
+                    ],
+                    interests: [
+                        {id: "i13", text: "I would be interested in a career involving advanced mathematics or physics.", domain: "Investigative"},
+                        {id: "i14", text: "I enjoy working with tools and building complex models.", domain: "Realistic"},
+                        {id: "i15", text: "I find myself drawn to fields that involve counseling, teaching, or mentoring others.", domain: "Social"},
+                        {id: "i16", text: "I'm fascinated by business and the principles of economics.", domain: "Enterprising"},
+                        {id: "i17", text: "I love to create visual art, music, or write creative fiction.", domain: "Artistic"},
+                        {id: "i18", text: "I prefer working in a structured environment with clear procedures and data to organize.", domain: "Conventional"},
+                        {id: "i19", text: "I would be interested in a career in medicine or scientific research.", domain: "Investigative"},
+                        {id: "i20", text: "I enjoy manual labor and being physically active in my work.", domain: "Realistic"},
+                        {id: "i21", text: "I am a natural leader and enjoy motivating groups of people.", domain: "Enterprising"},
+                        {id: "i22", text: "I find fulfillment in helping people through difficult situations.", domain: "Social"},
+                        {id: "i23", text: "I am skilled at organizing documents, data, and information.", domain: "Conventional"},
+                        {id: "i24", text: "I am passionate about design, photography, or performance.", domain: "Artistic"},
+                    ],
+                    aptitude: [
+                        {id: "a15", text: "A car travels at 80 km/h. How many minutes will it take to travel 60 km?", options: ["40 minutes", "45 minutes", "50 minutes", "60 minutes"], answer: "45 minutes", domain: "Numerical"},
+                        {id: "a16", text: "If a circle's radius is doubled, by what factor does its area increase?", options: ["2", "3", "4", "8"], answer: "4", domain: "Numerical"},
+                        {id: "a17", text: "A store offers a 30% discount on a jacket. If the original price was $150, what is the final price?", options: ["$105", "$110", "$120", "$135"], answer: "$105", domain: "Numerical"},
+                        {id: "a18", text: "A company's revenue increased from $500,000 to $650,000 in one year. What is the percentage increase?", options: ["20%", "25%", "30%", "35%"], answer: "30%", domain: "Numerical"},
+                        {id: "a19", text: "What is the next term in the series: 1, 4, 9, 16, 25, ?", options: ["30", "32", "36", "40"], answer: "36", domain: "Logical"},
+                        {id: "a20", text: "Which of the following is an antonym of 'ephemeral'?", options: ["Fleeting", "Permanent", "Temporary", "Swift"], answer: "Permanent", domain: "Verbal"},
+                        {id: "a21", text: "Which word best completes the analogy: 'Oven is to bake as Refrigerator is to _____.'?", options: ["Freeze", "Cook", "Eat", "Warm"], answer: "Freeze", domain: "Verbal"},
+                        {id: "a22", text: "A and B are brothers. C is A's sister. D is C's father. E is B's mother. How is D related to E?", options: ["Son", "Husband", "Father", "Brother"], answer: "Husband", domain: "Logical"},
+                        {id: "a23", text: "A pulley system is used to lift a 100 kg weight. If the force applied is 25 kg, what is the mechanical advantage?", options: ["2", "3", "4", "5"], answer: "4", domain: "Mechanical"},
+                        {id: "a24", text: "If an object is launched into space, at what point does it become weightless?", options: ["Just as it leaves the atmosphere.", "When it reaches a certain altitude.", "It is never truly weightless.", "When it is in a state of freefall."], answer: "When it is in a state of freefall.", domain: "Scientific"},
+                        {id: "a25", text: "Read the passage and choose the best summary: 'The discovery of the electron by J.J. Thomson in 1897 revolutionized our understanding of atomic structure. His experiments with cathode rays led him to conclude that atoms were not indivisible spheres, but contained smaller, negatively charged particles. This paved the way for future models of the atom, including Rutherford's and Bohr's.'", options: ["The electron was discovered in 1897 by J.J. Thomson.", "J.J. Thomson's discovery of the electron was a key step in understanding atomic structure.", "Cathode rays were essential for J.J. Thomson's experiments.", "Rutherford and Bohr built upon Thomson's work."], answer: "J.J. Thomson's discovery of the electron was a key step in understanding atomic structure.", domain: "Verbal"},
+                        {id: "a26", text: "If a car's tire has a diameter of 2 feet and rotates 100 times, how far has the car traveled?", options: ["$100\pi$ feet", "$150\pi$ feet", "$200\pi$ feet", "$250\pi$ feet"], answer: "$200\pi$ feet", domain: "Numerical"},
+                        {id: "a27", text: "Which number is next in the series: 1, 2, 6, 24, 120, ?", options: ["240", "360", "480", "720"], answer: "720", domain: "Logical"},
+                        {id: "a28", text: "A ladder is leaning against a wall. If the base of the ladder is 3 meters from the wall and the top of the ladder is 4 meters up the wall, what is the length of the ladder?", options: ["5 meters", "6 meters", "7 meters", "8 meters"], answer: "5 meters", domain: "Numerical"},
+                    ],
+                    skills: [
+                        {id: "s13", text: "I am highly effective at communicating complex ideas clearly and persuasively.", domain: "People"},
+                        {id: "s14", text: "I can lead a team to a successful outcome.", domain: "People"},
+                        {id: "s15", text: "I am skilled at active listening and understanding others' perspectives.", domain: "People"},
+                        {id: "s16", text: "I am excellent at managing my time and meeting deadlines.", domain: "Task"},
+                        {id: "s17", text: "I can analyze a problem and break it down into smaller, manageable steps.", domain: "Task"},
+                        {id: "s18", text: "I am a critical thinker who questions assumptions.", domain: "Personal"},
+                        {id: "s19", text: "I have strong self-confidence and can make decisions independently.", domain: "Personal"},
+                        {id: "s20", text: "I am adaptable and resilient when faced with new challenges.", domain: "Personal"},
+                        {id: "s21", text: "I can negotiate effectively to find a win-win solution.", domain: "People"},
+                        {id: "s22", text: "I am highly organized and meticulous with details.", domain: "Task"},
+                        {id: "s23", text: "I can work independently without constant supervision.", domain: "Personal"},
+                        {id: "s24", text: "I am good at finding creative and innovative solutions.", domain: "Task"},
+                    ]
+                }
+            }
+        };
+
+        // --- DOM ELEMENTS AND CONSTANTS ---
+        const studentInfoForm = document.getElementById('student-info-form');
+        const studentGradeSelect = document.getElementById('student-grade');
+        const backButton = document.getElementById('back-button');
+        const nextButton = document.getElementById('next-button');
+        const submitTestButton = document.getElementById('submit-test-button');
+        const timerDisplay = document.getElementById('timer');
+        const reportContent = document.getElementById('report-content');
+        const downloadPdfButton = document.getElementById('download-pdf-button');
+        const steps = document.querySelectorAll('.step');
+        const questionSections = document.querySelectorAll('.question-section');
+
+        const sectionOrder = {
+            "personality": 0, "interests": 1, "aptitude": 2, "skills": 3
+        };
+
+        // --- EVENT LISTENERS ---
+        studentInfoForm.addEventListener('submit', handleStudentInfoSubmit);
+        nextButton.addEventListener('click', handleNextSection);
+        backButton.addEventListener('click', handleBackSection);
+        submitTestButton.addEventListener('click', handleSubmitTest);
+        downloadPdfButton.addEventListener('click', handleDownloadPdf);
+
+        // --- FUNCTIONS ---
+        
+        /** Displays the active step and hides the others. */
+        function showStep(stepNumber) {
+            steps.forEach(step => step.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+        }
+
+        /** Handles submission of the student information form. */
+        function handleStudentInfoSubmit(event) {
+            event.preventDefault();
+            state.studentInfo = {
+                name: document.getElementById('student-name').value,
+                grade: parseInt(studentGradeSelect.value),
+            };
+            
+            state.currentSection = 0;
+            generateQuestionnaire();
+            showStep(2);
+        }
+
+        /** Handles navigation to the next section. */
+        function handleNextSection() {
+            const currentFormId = state.sections[state.currentSection];
+            const currentForm = document.getElementById(`${currentFormId}-form`);
+            const requiredInputs = currentForm.querySelectorAll('[required]');
+            
+            let allAnswered = true;
+            for (const input of requiredInputs) {
+                if (input.type === 'radio') {
+                    const radioGroupName = input.name;
+                    const radioGroup = document.querySelectorAll(`input[name="${radioGroupName}"]`);
+                    let groupAnswered = Array.from(radioGroup).some(radio => radio.checked);
+                    if (!groupAnswered) {
+                        allAnswered = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!allAnswered) {
+                const messageBox = document.createElement('div');
+                messageBox.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-4 rounded-lg shadow-xl z-50';
+                messageBox.textContent = 'Please answer all questions before proceeding.';
+                document.body.appendChild(messageBox);
+                setTimeout(() => messageBox.remove(), 3000); 
+                return;
+            }
+
+            const formData = new FormData(currentForm);
+            for (let [name, value] of formData.entries()) {
+                state.answers[name] = value;
+            }
+            
+            if (state.currentSection < state.sections.length - 1) {
+                state.currentSection++;
+                displayCurrentSection();
+            }
+        }
+        
+        /** Handles navigation to the previous section. */
+        function handleBackSection() {
+            stopAptitudeTimer();
+            if (state.currentSection > 0) {
+                state.currentSection--;
+                displayCurrentSection();
+            }
+        }
+
+        /** Displays the current questionnaire section. */
+        function displayCurrentSection() {
+            questionSections.forEach(section => section.classList.add('hidden'));
+            document.getElementById(`section-${state.sections[state.currentSection]}`).classList.remove('hidden');
+
+            backButton.classList.remove('hidden');
+            nextButton.classList.remove('hidden');
+            submitTestButton.classList.add('hidden');
+
+            if (state.currentSection === 0) {
+                backButton.classList.add('hidden');
+            } else if (state.currentSection === state.sections.length - 1) {
+                nextButton.classList.add('hidden');
+                submitTestButton.classList.remove('hidden');
+            }
+
+            if (state.sections[state.currentSection] === "aptitude") {
+                startAptitudeTimer();
+            } else {
+                stopAptitudeTimer();
+            }
+        }
+
+        /** Starts the timer for the aptitude section. */
+        function startAptitudeTimer() {
+            state.aptitudeTimeRemaining = 120; // 2 minutes
+            timerDisplay.textContent = `Time Remaining: ${state.aptitudeTimeRemaining}s`;
+
+            if (state.aptitudeTimer) {
+                clearInterval(state.aptitudeTimer);
+            }
+
+            state.aptitudeTimer = setInterval(() => {
+                state.aptitudeTimeRemaining--;
+                timerDisplay.textContent = `Time Remaining: ${state.aptitudeTimeRemaining}s`;
+                if (state.aptitudeTimeRemaining <= 0) {
+                    clearInterval(state.aptitudeTimer);
+                    handleSubmitTest();
+                }
+            }, 1000);
+        }
+
+        /** Stops the timer for the aptitude section. */
+        function stopAptitudeTimer() {
+            if (state.aptitudeTimer) {
+                clearInterval(state.aptitudeTimer);
+                state.aptitudeTimer = null;
+            }
+        }
+
+        /** Generates the questionnaire based on the student's grade. */
+        function generateQuestionnaire() {
+            const grade = state.studentInfo.grade;
+            const questionnaireData = grade >= 9 ? state.questions.grades_9_12 : state.questions.grades_6_8;
+
+            // Clear previous forms
+            document.getElementById('personality-form').innerHTML = '';
+            document.getElementById('interests-form').innerHTML = '';
+            document.getElementById('aptitude-form').innerHTML = '';
+            document.getElementById('skills-form').innerHTML = '';
+            
+            // Generate Personality questions (Likert scale)
+            const personalityHtml = questionnaireData.personality.map(q => `
+                <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
+                    <p class="font-medium text-gray-800 mb-2">${q.text}</p>
+                    <div class="flex justify-between items-center text-center mt-4">
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="personality-${q.id}" value="1" class="hidden likert-option" required>
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Strongly Disagree</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="personality-${q.id}" value="2" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Disagree</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="personality-${q.id}" value="3" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Neutral</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="personality-${q.id}" value="4" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Agree</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="personality-${q.id}" value="5" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Strongly Agree</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('personality-form').innerHTML = personalityHtml;
+
+            // Generate Interests questions (Likert)
+            const interestsHtml = questionnaireData.interests.map(q => `
+                <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
+                    <p class="font-medium text-gray-800 mb-2">${q.text}</p>
+                    <div class="flex justify-between items-center text-center mt-4">
+                         <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="interests-${q.id}" value="1" class="hidden likert-option" required>
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Strongly Dislike</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="interests-${q.id}" value="2" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Dislike</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="interests-${q.id}" value="3" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Neutral</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="interests-${q.id}" value="4" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Like</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="interests-${q.id}" value="5" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Strongly Like</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('interests-form').innerHTML = interestsHtml;
+
+            // Generate Aptitude questions (multiple choice)
+            const aptitudeHtml = questionnaireData.aptitude.map(q => `
+                <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
+                    <p class="font-medium text-gray-800 mb-2">${q.text}</p>
+                    ${q.passage ? `<div class="bg-gray-100 p-3 rounded-lg my-2 text-gray-700 text-sm italic">${q.passage}</div>` : ''}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                        ${q.options.map(option => `
+                            <label class="cursor-pointer">
+                                <input type="radio" name="aptitude-${q.id}" value="${option}" class="hidden likert-option" required>
+                                <span class="likert-label block py-2 px-4 rounded-lg text-sm transition-all border border-gray-300 hover:bg-gray-200">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('aptitude-form').innerHTML = aptitudeHtml;
+            
+            // Generate Skills questions (Likert)
+            const skillsHtml = questionnaireData.skills.map(q => `
+                <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
+                    <p class="font-medium text-gray-800 mb-2">${q.text}</p>
+                    <div class="flex justify-between items-center text-center mt-4">
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="skills-${q.id}" value="1" class="hidden likert-option" required>
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Novice</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="skills-${q.id}" value="2" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Intermediate</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="skills-${q.id}" value="3" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Proficient</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer mx-1">
+                            <input type="radio" name="skills-${q.id}" value="4" class="hidden likert-option">
+                            <span class="likert-label block py-2 rounded-lg text-xs sm:text-sm transition-all border border-gray-300 hover:bg-gray-200">Expert</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('skills-form').innerHTML = skillsHtml;
+
+            displayCurrentSection();
+        }
+
+        /** Handles the final submission of the questionnaire. */
+        function handleSubmitTest(event) {
+            const currentFormId = state.sections[state.currentSection];
+            const currentForm = document.getElementById(`${currentFormId}-form`);
+            
+            const formData = new FormData(currentForm);
+            for (let [name, value] of formData.entries()) {
+                state.answers[name] = value;
+            }
+            
+            stopAptitudeTimer();
+
+            // Send data to Google Sheet
+            sendDataToGoogleSheet();
+
+            // Calculate scores
+            state.scores = calculateScores();
+
+            // Generate and display report
+            generateReport();
+            showStep(3);
+        }
+
+        /** Calculates scores based on the collected answers. */
+        function calculateScores() {
+            const scores = {
+                personality: { openness: 0, conscientiousness: 0, extraversion: 0, neuroticism: 0, agreeableness: 0 },
+                interests: { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 },
+                aptitude: { Verbal: 0, Numerical: 0, Logical: 0, Mechanical: 0, Scientific: 0 },
+                skills: { People: 0, Task: 0, Personal: 0 }
+            };
+            const grade = state.studentInfo.grade;
+            const questionnaireData = grade >= 9 ? state.questions.grades_9_12 : state.questions.grades_6_8;
+            
+            // Score Personality (Likert 1-5) - Simple mapping
+            questionnaireData.personality.forEach(q => {
+                const answer = parseInt(state.answers[`personality-${q.id}`]);
+                if (!isNaN(answer)) {
+                    // This mapping is for demonstration, and should be based on a validated test model
+                    if (q.id === "p1" || q.id === "p4" || q.id === "p7" || q.id === "p11" || q.id === "p15" || q.id === "p18") {
+                        scores.personality.extraversion += answer;
+                    }
+                    if (q.id === "p2" || q.id === "p5" || q.id === "p8" || q.id === "p13" || q.id === "p21") {
+                        scores.personality.openness += answer;
+                    }
+                    if (q.id === "p3" || q.id === "p6" || q.id === "p12" || q.id === "p14" || q.id === "p19" || q.id === "p24") {
+                        scores.personality.conscientiousness += answer;
+                    }
+                    if (q.id === "p10" || q.id === "p17" || q.id === "p20" || q.id === "p23") {
+                        scores.personality.agreeableness += answer;
+                    }
+                    if (q.id === "p9" || q.id === "p16" || q.id === "p22") {
+                        scores.personality.neuroticism += (6 - answer); // Reverse scored
+                    }
+                }
+            });
+
+            // Score Interests (Likert 1-5)
+            questionnaireData.interests.forEach(q => {
+                const answer = parseInt(state.answers[`interests-${q.id}`]);
+                if (!isNaN(answer)) {
+                    scores.interests[q.domain] += answer;
+                }
+            });
+
+            // Score Aptitude (Correct/Incorrect)
+            questionnaireData.aptitude.forEach(q => {
+                const answer = state.answers[`aptitude-${q.id}`];
+                if (answer === q.answer) {
+                    scores.aptitude[q.domain] += 1;
+                }
+            });
+            
+            // Score Skills (Likert 1-4)
+            questionnaireData.skills.forEach(q => {
+                const answer = parseInt(state.answers[`skills-${q.id}`]);
+                if (!isNaN(answer)) {
+                    scores.skills[q.domain] += answer;
+                }
+            });
+
+            return scores;
+        }
+        
+        /** Generates the HTML content for the final report. */
+        function generateReport() {
+            if (!state.scores) return;
+
+            const name = state.studentInfo.name;
+            const grade = state.studentInfo.grade;
+            const scores = state.scores;
+
+            // Find top interests, aptitudes, skills
+            const sortedInterests = Object.entries(scores.interests).sort((a, b) => b[1] - a[1]);
+            const top3Interests = sortedInterests.slice(0, 3).map(i => i[0]);
+            
+            const sortedAptitudes = Object.entries(scores.aptitude).sort((a, b) => b[1] - a[1]);
+            const top3Aptitudes = sortedAptitudes.slice(0, 3).map(a => a[0]);
+
+            const sortedSkills = Object.entries(scores.skills).sort((a, b) => b[1] - a[1]);
+            const topSkillCategory = sortedSkills[0][0];
+
+            // Personality Type (simplified for this example)
+            const personalityTraits = Object.entries(scores.personality).sort((a, b) => b[1] - a[1]);
+            const personalityCode = personalityTraits.map(t => t[0].charAt(0).toUpperCase()).join('');
+            const personalityDescription = `Based on your responses, your personality is defined by the code: **${personalityCode}**. This suggests you are a **${personalityTraits[0][0]}** and **${personalityTraits[1][0]}** individual.`;
+
+            // Report content
+            document.getElementById('report-name').textContent = `Name: ${name}`;
+            document.getElementById('report-class').textContent = `Class: ${grade}`;
+
+            document.getElementById('personality-report-text').innerHTML = `The term personality describes the way a person is naturally motivated to act. Your personality code is **${personalityCode}**. This indicates that you are a responsible and dependable individual who enjoys taking on challenges and thrives in structured environments.`;
+
+            document.getElementById('interests-report-text').innerHTML = `You can use your interests to explore careers. Interests are good to use because you probably will find that occupations that meet your interests will be more satisfying and rewarding for you than occupations that don't meet your interests. Your top three interests are: **${top3Interests.join(', ')}**`;
+            
+            // Interests Bar Chart
+            const interestsChartCanvas = document.getElementById('interests-chart-canvas');
+            const interestsCtx = interestsChartCanvas.getContext('2d');
+            const interestLabels = Object.keys(scores.interests);
+            const interestValues = Object.values(scores.interests);
+            const maxInterestScore = 60; // Max score is 12 questions * 5 points
+
+            interestsChartCanvas.width = 700;
+            interestsChartCanvas.height = 300;
+
+            const barWidth = 40;
+            const spacing = 15;
+            const yAxisStart = 20;
+            const chartHeight = 250;
+            const xAxisStart = 70;
+            
+            interestsCtx.clearRect(0, 0, interestsChartCanvas.width, interestsChartCanvas.height);
+            
+            // Draw x-axis and labels
+            interestsCtx.fillStyle = '#4b5563';
+            interestsCtx.font = '12px Inter';
+            for (let i = 0; i <= maxInterestScore; i+=5) {
+                const x = xAxisStart + (i / maxInterestScore) * (700 - xAxisStart);
+                interestsCtx.fillText(i, x, chartHeight + 10);
+                interestsCtx.beginPath();
+                interestsCtx.moveTo(x, chartHeight);
+                interestsCtx.lineTo(x, chartHeight - 5);
+                interestsCtx.strokeStyle = '#e5e7eb';
+                interestsCtx.stroke();
+            }
+            
+            // Draw bars
+            interestValues.forEach((value, index) => {
+                const barLength = (value / maxInterestScore) * (700 - xAxisStart);
+                const y = yAxisStart + index * (barWidth + spacing);
+                interestsCtx.fillStyle = '#6b9278';
+                interestsCtx.fillRect(xAxisStart, y, barLength, barWidth);
+                interestsCtx.fillStyle = '#2e6644';
+                interestsCtx.fillText(interestLabels[index], 10, y + barWidth / 2 + 5);
+                interestsCtx.fillStyle = 'white';
+                interestsCtx.fillText(value, xAxisStart + barLength - 20, y + barWidth / 2 + 5);
+            });
+
+            document.getElementById('aptitude-report-text').innerHTML = `The simple answer is that aptitude is nothing but the natural ease of learning/doing something. It is very important for you to know your aptitude to choose the right career path. Your top three aptitudes are: **${top3Aptitudes.join(', ')}**.`;
+            
+            const aptitudeTableHtml = top3Aptitudes.map(apt => {
+                const maxScore = (grade >= 9 ? 6 : 5);
+                return `
+                <div class="p-2 border rounded-md bg-gray-50 flex justify-between items-center text-sm">
+                    <div class="font-medium text-gray-800">${apt} Reasoning</div>
+                    <div class="text-right text-gray-600">${scores.aptitude[apt]}/${maxScore}</div>
+                </div>
+            `}).join('');
+            document.getElementById('aptitude-summary-table').innerHTML = aptitudeTableHtml;
+
+
+            document.getElementById('skills-report-text').innerHTML = `Understanding your skills is critical for evaluating potential occupations. You have a high score in **${topSkillCategory} Skills**, which shows that you naturally excel in areas related to communication, teamwork, and leadership.`;
+            
+            // Skills Pie Chart
+            const skillsChartCanvas = document.getElementById('skills-pie-chart-canvas');
+            const skillsCtx = skillsChartCanvas.getContext('2d');
+            const skillsLabels = Object.keys(scores.skills);
+            const skillsValues = Object.values(scores.skills);
+            const totalSkillsScore = skillsValues.reduce((a, b) => a + b, 0);
+
+            skillsChartCanvas.width = 300;
+            skillsChartCanvas.height = 300;
+            const chartColors = ['#2e6644', '#f59e0b', '#10b981'];
+            let startAngle = 0;
+
+            skillsCtx.clearRect(0, 0, skillsChartCanvas.width, skillsChartCanvas.height);
+
+            for (let i = 0; i < skillsValues.length; i++) {
+                const sliceAngle = (skillsValues[i] / totalSkillsScore) * 2 * Math.PI;
+                skillsCtx.fillStyle = chartColors[i];
+                skillsCtx.beginPath();
+                skillsCtx.arc(150, 150, 100, startAngle, startAngle + sliceAngle);
+                skillsCtx.lineTo(150, 150);
+                skillsCtx.fill();
+
+                // Add labels
+                const labelX = 150 + Math.cos(startAngle + sliceAngle / 2) * 120;
+                const labelY = 150 + Math.sin(startAngle + sliceAngle / 2) * 120;
+                skillsCtx.fillStyle = '#4b5563';
+                skillsCtx.textAlign = 'center';
+                skillsCtx.fillText(`${skillsLabels[i]}`, labelX, labelY);
+                
+                startAngle += sliceAngle;
+            }
+
+            const careerRecommendations = getCareerRecommendations(top3Interests, top3Aptitudes);
+            document.getElementById('career-recommendations').innerHTML = careerRecommendations.map((rec, index) => `
+                <div class="report-box p-4 bg-gray-50">
+                    <p class="font-semibold text-gray-800 text-lg">Preference ${index + 1}: ${rec.industry}</p>
+                    <p class="text-sm text-gray-600 mb-2">${rec.description}</p>
+                    <p class="font-medium text-gray-700">Recommended Career Options:</p>
+                    <ul class="list-disc list-inside ml-4 text-sm text-gray-600">
+                        ${rec.roles.map(role => `<li>${role}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+        
+        function getCareerRecommendations(topInterests, topAptitudes) {
+            const recommendations = [];
+
+            // A simplified logic based on the provided report
+            if (topInterests.includes('Investigative') && topAptitudes.includes('Numerical')) {
+                 recommendations.push({
+                    industry: "Medical/Healthcare",
+                    description: "Your combination of investigative interests and numerical aptitude makes you a perfect fit for a career in the medical and healthcare industry, where precision and analytical skills are essential.",
+                    roles: ["Doctor", "Pharmaceutical Scientist", "Biotechnologist", "Medical Researcher"]
+                });
+            }
+            if (topInterests.includes('Artistic') && topAptitudes.includes('Logical')) {
+                 recommendations.push({
+                    industry: "Designing/Crafting/Creative",
+                    description: "Your artistic interests and logical problem-solving skills align perfectly with careers in design, where creativity is applied to structured projects.",
+                    roles: ["Interior Designer", "Architect", "Graphic Designer", "Creative Director"]
+                });
+            }
+            if (topInterests.includes('Conventional') && topAptitudes.includes('Verbal')) {
+                 recommendations.push({
+                    industry: "Commerce, Finance and Business",
+                    description: "Your preference for structured work and strong verbal abilities can lead you to a rewarding career in finance, banking, or business studies, where communication and order are key.",
+                    roles: ["Financial Analyst", "Accountant", "Market Researcher", "Management Consultant"]
+                });
+            }
+            if (topInterests.includes('Enterprising') && topAptitudes.includes('Verbal')) {
+                 recommendations.push({
+                    industry: "Management & Leadership",
+                    description: "Your enterprising spirit and verbal aptitude are ideal for careers where you can lead people and manage projects to achieve success.",
+                    roles: ["Business Manager", "Entrepreneur", "Project Manager", "Human Resources Manager"]
+                });
+            }
+            if (topInterests.includes('Realistic') && topAptitudes.includes('Mechanical')) {
+                 recommendations.push({
+                    industry: "Engineering/IT/Robotics",
+                    description: "Your hands-on, practical interests and mechanical aptitude make you a natural for careers in engineering and technology.",
+                    roles: ["Robotics Engineer", "IT Engineer", "Cybersecurity Expert", "Software Developer"]
+                });
+            }
+            
+            // Return top 3 recommendations, or a fallback if there are none.
+            return recommendations.slice(0, 3).length > 0 ? recommendations.slice(0, 3) : [
+                {
+                    industry: "The Visionary Explorer",
+                    description: "Your unique combination of talents and passions means you have a boundless future. The best path for you might be one that doesn't even exist yet. Go explore!",
+                    roles: ["Future Innovator", "World Traveler", "Interdisciplinary Researcher"]
+                }
+            ];
+        }
+
+        /** Handles downloading the report as a PDF. */
+        function handleDownloadPdf() {
+            const element = document.getElementById('report-content');
+            const opt = {
+                margin: 0.5,
+                filename: `Career_Report_${state.studentInfo.name.replace(/\s/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        /** Sends student data and answers to the Google Sheet. */
+        function sendDataToGoogleSheet() {
+            if (!SCRIPT_URL) {
+                console.error("SCRIPT_URL is not configured. Data will not be sent to Google Sheets.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("timestamp", new Date().toLocaleString());
+            formData.append("name", state.studentInfo.name);
+            formData.append("grade", state.studentInfo.grade);
+            
+            // Append all answers
+            for (const [key, value] of Object.entries(state.answers)) {
+                formData.append(key, value);
+            }
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    console.log("Data successfully sent to Google Sheet.");
+                } else {
+                    console.error("Failed to send data to Google Sheet.");
+                }
+            }).catch(error => {
+                console.error("Error sending data to Google Sheet:", error);
+            });
+        }
+        
+        // Initial setup
+        showStep(1);
+
+    </script>
+</body>
+</html>
