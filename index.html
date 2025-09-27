@@ -97,15 +97,15 @@
             <form id="student-info-form" class="space-y-6 text-left max-w-sm mx-auto">
                 <div>
                     <label for="student-name" class="block text-sm font-medium text-gray-700 mb-1">Your Full Name</label>
-                    <input type="text" id="student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" id="student-name" name="name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
                 <div>
                     <label for="father-name" class="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
-                    <input type="text" id="father-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" id="father-name" name="father-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
                 <div>
                     <label for="student-grade" class="block text-sm font-medium text-gray-700 mb-1">Select Your Grade</label>
-                    <select id="student-grade" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <select id="student-grade" name="grade" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                         <option value="">-- Select Grade --</option>
                         <option value="6">6th Grade</option>
                         <option value="7">7th Grade</option>
@@ -118,7 +118,7 @@
                 </div>
                 <div>
                     <label for="division" class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-                    <input type="text" id="student-division" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <input type="text" id="student-division" name="division" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                 </div>
                 <div class="text-center">
                     <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">Start the Test</button>
@@ -245,7 +245,7 @@
             currentStep: 1,
             currentSection: 0,
             studentInfo: null,
-            answers: {},
+            answers: {}, // This will hold all key:value pairs for the final submission
             scores: null,
             aptitudeTimer: null,
             aptitudeTimeRemaining: 0,
@@ -408,6 +408,8 @@
         /** Handles submission of the student information form. */
         function handleStudentInfoSubmit(event) {
             event.preventDefault();
+            
+            // 1. Save identity info to state.studentInfo (for report)
             state.studentInfo = {
                 name: document.getElementById('student-name').value,
                 fatherName: document.getElementById('father-name').value,
@@ -415,6 +417,13 @@
                 grade: parseInt(studentGradeSelect.value),
             };
             
+            // 2. ALSO save identity info directly to state.answers (for spreadsheet submission)
+            // This is the CRITICAL change for alignment!
+            state.answers['name'] = state.studentInfo.name;
+            state.answers['father-name'] = state.studentInfo.fatherName;
+            state.answers['division'] = state.studentInfo.division;
+            state.answers['grade'] = state.studentInfo.grade;
+
             state.currentSection = 0;
             generateQuestionnaire();
             showStep(2);
@@ -456,6 +465,7 @@
                 return;
             }
 
+            // Save answers from the current section to state.answers
             const formData = new FormData(currentForm);
             for (let [name, value] of formData.entries()) {
                 state.answers[name] = value;
@@ -648,12 +658,13 @@
             const currentFormId = state.sections[state.currentSection];
             const currentForm = document.getElementById(`${currentFormId}-form`);
             
-            // CRITICAL FIX: Validate the final section before collecting data and generating report
+            // CRITICAL: Validate the final section before collecting data and generating report
             if (!isFormComplete(currentForm)) {
                 displayError('Please answer all remaining questions before submitting.');
                 return;
             }
 
+            // Save answers from the final section to state.answers
             const formData = new FormData(currentForm);
             for (let [name, value] of formData.entries()) {
                 state.answers[name] = value;
@@ -757,7 +768,6 @@
             const personalityDescription = `Based on your responses, your personality is defined by the code: **${personalityCode}**. This suggests you are a **${personalityTraits[0][0]}** and **${personalityTraits[1][0]}** individual.`;
 
             // Report Personal Info (Updated to show all details)
-            // NOTE: Removed deprecated report-name and report-class lines which were causing the error.
             document.getElementById('report-name-details').innerHTML = `
                 <div class="font-bold text-base text-gray-800">Name: ${name}</div>
                 <div>Father's Name: ${state.studentInfo.fatherName}</div>
@@ -946,13 +956,12 @@
             }
 
             const formData = new FormData();
-            formData.append("timestamp", new Date().toLocaleString());
-            formData.append("name", state.studentInfo.name);
-            formData.append("father-name", state.studentInfo.fatherName);
-            formData.append("division", state.studentInfo.division);
-            formData.append("grade", state.studentInfo.grade);
             
-            // Append all answers
+            // CRITICAL FIX: Append the timestamp first, then iterate over the consolidated state.answers
+            formData.append("timestamp", new Date().toLocaleString());
+            
+            // Append ALL data (identity + questionnaire) from the consolidated state.answers object
+            // This ensures all keys match the spreadsheet headers in order
             for (const [key, value] of Object.entries(state.answers)) {
                 formData.append(key, value);
             }
